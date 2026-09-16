@@ -1,0 +1,47 @@
+name: build
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize Energy Estimation
+        uses: green-coding-berlin/eco-ci-energy-estimation@v5
+        with:
+          task: start-measurement
+
+      - name: "Checkout repository"
+        uses: actions/checkout@v7
+
+      - name: Checkout Repo Measurement
+        uses: green-coding-berlin/eco-ci-energy-estimation@v5
+        with:
+          task: get-measurement
+          label: 'repository checkout'
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: 'package.json'
+
+      - name: Npm install
+        run: npm ci
+      - name: Npm build
+        run: npm run build --if-present
+
+      - name: Checkout Repo Measurement
+        uses: green-coding-berlin/eco-ci-energy-estimation@v5
+        with:
+          task: get-measurement
+          label: 'Npm activities'
+
+      - name: Show Energy Results
+        uses: green-coding-berlin/eco-ci-energy-estimation@v5
+        with:
+          task: display-results
